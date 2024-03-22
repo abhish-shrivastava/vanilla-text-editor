@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text editor demo</title>
+    <style>
+      body {
+        padding: 0.5rem 1rem;
+        background-color: rgb(243 243 243);
+      }
+      pre {
+        background-color: rgb(219 219 219);
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Text Editor Demo</h1>
+    <p>To use or test, include the script text-editor.js and provide a div as an argument to its get_text_editor funtion.</p>
+    <p>For example-</p>
+    <code>
+      <pre>
+        &lt;div class="editor"&gt;&lt;/div&gt;
+        &lt;script src="Vanilla-text-editor.js"&gt;&lt;/script&gt;
+        &lt;script&gt;
+            window.onload = function() {
+                get_text_editor(document.querySelector(".editor"));
+            }
+        &lt;/script&gt;
+        </pre
+      >
+    </code>
+    <div class="editor"></div>
+    <script src="vanilla-text-editor.js"></script>
+    <script>
+      window.onload = function () {
+        get_text_editor(document.querySelector(".editor"));
+      };
+    </script>
+  </body>
+</html>
