@@ -1,3 +1,6 @@
+u_stack = [];
+r_stack = [];
+
 function get_format_list() {
     const format_btn_list = [
         {
@@ -49,6 +52,24 @@ function get_format_list() {
             label_innerHTML: "&#x1F517",
             listener: insert_link,
         },
+        {
+            for: "undo",
+            tag: "",
+            class: "",
+            label_innerHTML: "&#x238C",
+            id: "undo-tool-strip-btn",
+            listener: revert_queue_stack,
+            disabled: true,
+        },
+        {
+            for: "redo",
+            tag: "",
+            class: "",
+            label_innerHTML: "&#x27F3",
+            id: "redo-tool-strip-btn",
+            listener: revert_queue_stack,
+            disabled: true,
+        }
     ];
     return format_btn_list;
 }
@@ -69,8 +90,18 @@ function create_format_button(format, editor) {
     b.innerHTML = format.label_innerHTML;
     b.format = format;
     b.format.editor = editor;
-    b.addEventListener("click", format.listener);
+    b.id = format.id ?? "";
+    b.disabled = format.disabled ?? false;
+    b.addEventListener("click", btn_operation);
     return b;
+}
+
+const btn_operation = function (event) {
+    
+    if(this.format.for != "undo" && this.format.for != "redo")
+        update_queue_stack();
+
+    this.format.listener.call(this);
 }
 
 function get_text_editor(div) {
@@ -89,9 +120,11 @@ function get_text_editor(div) {
     link.setAttribute("rel", "stylesheet");
     link.setAttribute("href", "vanilla-text-editor.css");
     document.querySelector("head").appendChild(link);
+
+    document.addEventListener("keydown", key_revert_operations);
 }
 
-const format_sel = function (event) {
+const format_sel = function () {
 
     const editor = this.format.editor;
     if (!(editor.textContent)) return;
@@ -160,7 +193,7 @@ const format_sel = function (event) {
 
 }
 
-const insert_link = function (event) {
+const insert_link = function () {
 
     let sel;
 
@@ -292,4 +325,52 @@ function tags_position(list, tag_name, class_name = "") {
         }
     }
     return i;
+}
+
+const revert_queue_stack = function (operation = "") {
+
+    const editor = document.querySelector(".--editor");
+
+    if( operation === "undo" || this.format.for === "undo") {
+        const prev = editor.innerHTML;
+        editor.innerHTML = u_stack.pop();
+        r_stack.push(prev);
+
+        if(!u_stack.length) 
+            this.disabled = true;
+        editor.parentElement.querySelector("#redo-tool-strip-btn").disabled = false;
+    }
+    else {
+        const prev = editor.innerHTML;
+        editor.innerHTML = r_stack.pop();
+        u_stack.push(prev);
+
+        if(!r_stack.length) 
+            this.disabled = true;
+        editor.parentElement.querySelector("#undo-tool-strip-btn").disabled = false;
+    }
+}
+
+function update_queue_stack() {
+    u_stack.push( document.querySelector(".--editor").innerHTML );
+    document.querySelector("#undo-tool-strip-btn").disabled = false;
+}
+
+const key_revert_operations = function (event) {
+
+    if ( event.ctrlKey && (event.key === 'z' || event.key === 'y' || event.key === 'Z' || event.key === 'Y') ) {
+        event.preventDefault();
+        /*
+        if ( (event.key === 'z' || event.key === 'Z') && u_stack.length ) {
+            revert_queue_stack("undo");
+        } else if ( (event.key === 'y' || event.key === 'Y') && r_stack.length ) {
+            revert_queue_stack("redo");
+        }
+        */
+    }
+
+    const imp_keys = [ '.', '?', 'Enter', 'Backspace', 'Delete', 'Insert', 'Paste', 'Cut'];
+    if( imp_keys.includes(event.key) || ( event.ctrlKey && ( event.key === 'v' || event.key === 'V' ) ) ) {
+        update_queue_stack();
+    }
 }

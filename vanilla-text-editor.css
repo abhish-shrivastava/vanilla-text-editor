@@ -12,7 +12,7 @@
     overflow-y: auto;
 }
 
-.--editor a {
+.--editor .a-link {
     cursor: pointer;
     color: orangered;
 }
