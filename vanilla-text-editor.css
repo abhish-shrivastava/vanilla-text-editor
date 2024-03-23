@@ -12,6 +12,11 @@
     overflow-y: auto;
 }
 
+.--editor a {
+    cursor: pointer;
+    color: orangered;
+}
+
 .--tool-strip {
     display: flex;
     align-items: stretch;
@@ -19,10 +24,74 @@
     border: 1px solid black;
     background-color: rgb(149 149 149);
     padding: 1px;
+    position: relative;
 }
 
+/*
 .--tool-strip button {
     margin-left: 1px;
+}
+
+.--text-editor-url-input-box {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    background-color: rgb(96 96 96);
+    padding: 1rem;
+}
+
+.--text-editor-url-input-box input[type='url'] {
+    width: 50ch;
+}
+*/
+
+.--text-editor-url-input-box {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+    background-color: rgb(248 249 250);
+    border: 1px solid rgb(206 212 218);
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgb(0 0 0 / 15%);
+    box-sizing: border-box;
+}
+
+.--text-editor-url-input-box input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid rgb(206 212 218);
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.--text-editor-url-input-box button {
+    width: 100px;
+    padding: 10px;
+    margin-right: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: rgb(0 123 255);
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.--text-editor-url-input-box button:hover {
+    background-color: rgb(0 123 255);
 }
 
 .underline {

@@ -1,49 +1,59 @@
-const format_btn_list = [
-    {
-        for: "bold",
-        tag: "STRONG",
-        class: "bold",
-        label_innerHTML: "<strong>B</strong>",
-    },
-    {
-        for: "italic",
-        tag: "EM",
-        class: "italic",
-        label_innerHTML: "<em>I</em>",
-    },
-    {
-        for: "underline",
-        tag: "SPAN",
-        class: "underline",
-        label_innerHTML: "<span class='underline'>U</span>",
-    },
-    {
-        for: "important",
-        tag: "SPAN",
-        class: "imp",
-        label_innerHTML: "<span class='imp'>imp</span>",
-    },
-    {
-        for: "subscript",
-        tag: "SUB",
-        class: "sub",
-        label_innerHTML: "X<sub>2</sub>",
-    },
-    {
-        for: "superscript",
-        tag: "SUP",
-        class: "sup",
-        label_innerHTML: "X<sup>2</sup>",
-    },
-    {
-        for: "link",
-        tag: "A",
-        class: "a-link",
-        label_innerHTML: "&#x1F517",
-    },
-];
+function get_format_list() {
+    const format_btn_list = [
+        {
+            for: "bold",
+            tag: "STRONG",
+            class: "bold",
+            label_innerHTML: "<strong>B</strong>",
+            listener: format_sel,
+        },
+        {
+            for: "italic",
+            tag: "EM",
+            class: "italic",
+            label_innerHTML: "<em>I</em>",
+            listener: format_sel,
+        },
+        {
+            for: "underline",
+            tag: "SPAN",
+            class: "underline",
+            label_innerHTML: "<span class='underline'>U</span>",
+            listener: format_sel,
+        },
+        {
+            for: "important",
+            tag: "SPAN",
+            class: "imp",
+            label_innerHTML: "<span class='imp'>imp</span>",
+            listener: format_sel,
+        },
+        {
+            for: "subscript",
+            tag: "SUB",
+            class: "sub",
+            label_innerHTML: "X<sub>2</sub>",
+            listener: format_sel,
+        },
+        {
+            for: "superscript",
+            tag: "SUP",
+            class: "sup",
+            label_innerHTML: "X<sup>2</sup>",
+            listener: format_sel,
+        },
+        {
+            for: "link",
+            tag: "A",
+            class: "a-link",
+            label_innerHTML: "&#x1F517",
+            listener: insert_link,
+        },
+    ];
+    return format_btn_list;
+}
 
-function create_elem(style, label="") {
+function create_elem(style, label = "") {
     const [tag_name, class_name] = style.split(".");
     const e = document.createElement(tag_name);
     if (class_name)
@@ -59,7 +69,7 @@ function create_format_button(format, editor) {
     b.innerHTML = format.label_innerHTML;
     b.format = format;
     b.format.editor = editor;
-    b.addEventListener("click", format_sel);
+    b.addEventListener("click", format.listener);
     return b;
 }
 
@@ -69,22 +79,22 @@ function get_text_editor(div) {
     div.classList.add("--editor");
 
     const tool_strip = create_elem("div.--tool-strip");
-    format_btn_list.forEach( format => tool_strip.appendChild( create_format_button( format, div ) ) );
+    get_format_list().forEach(format => tool_strip.appendChild(create_format_button(format, div)));
 
     const parent_div = create_elem("div.--text-editor");
     div.replaceWith(parent_div);
-    parent_div.append( tool_strip, div );
-    
+    parent_div.append(tool_strip, div);
+
     const link = document.createElement("link");
     link.setAttribute("rel", "stylesheet");
     link.setAttribute("href", "vanilla-text-editor.css");
     document.querySelector("head").appendChild(link);
 }
 
-function format_sel (event) {
-      
+const format_sel = function (event) {
+
     const editor = this.format.editor;
-    if ( !(editor.textContent) ) return;
+    if (!(editor.textContent)) return;
 
     const sel = window.getSelection().getRangeAt(0);
     const format_style = this.format.style;
@@ -96,7 +106,7 @@ function format_sel (event) {
     const common_ancestors = get_ances_list(sel.commonAncestorContainer, editor);
     const position = tags_position(common_ancestors, this.format.tag, this.format.class);
 
-    if ( position < common_ancestors.length - 1 ) {        // if the position is not of the top most parent which is the editor itself
+    if (position < common_ancestors.length - 1) {        // if the position is not of the top most parent which is the editor itself
 
         // before_sel is the part of the content before the selected content inside the common_ancestors[position] element. Its entire formatting is to be retained.
         const before_sel = sel.cloneRange();
@@ -123,7 +133,7 @@ function format_sel (event) {
         parent_format_element = common_ancestors[position].parentElement;
         common_ancestors[position].replaceWith(before_sel.extractContents(), next, after_sel.extractContents());
 
-    } else if( check_desc(sel, format_style) ) {
+    } else if (check_desc(sel, format_style)) {
         /*  
         this block checks if the entire selection is still in format but it may not necessarily be contained in one element that lies outside. For instance, consider the following selection-
         <em><strong> Some text 1 </strong></em><span.underline><strong> Some text 2 </strong></span> 
@@ -131,7 +141,7 @@ function format_sel (event) {
         */
 
         const fragment = sel.extractContents();
-        fragment.querySelectorAll(format_style).forEach( e => e.replaceWith(...e.childNodes) );
+        fragment.querySelectorAll(format_style).forEach(e => e.replaceWith(...e.childNodes));
         sel.insertNode(fragment);
         parent_format_element = sel.commonAncestorContainer.parentElement;
 
@@ -139,7 +149,7 @@ function format_sel (event) {
         /*  
         if the user instead wants to add "this" format to the selected text, then the following creates the relevant element for that format and the selection is appended to that element. The selection finally is replaced with the element. 
         */
-        const elem = create_elem( `${this.format.tag}.${this.format.class}` );
+        const elem = create_elem(`${this.format.tag}.${this.format.class}`);
         elem.appendChild(sel.extractContents());
         sel.insertNode(elem);
         parent_format_element = elem.parentElement;
@@ -150,13 +160,63 @@ function format_sel (event) {
 
 }
 
+const insert_link = function (event) {
+
+    let sel;
+
+    const editor = this.format.editor;
+
+    if(!editor.textContent)
+        return;
+
+    if( !window.getSelection().rangeCount || !( sel = window.getSelection().getRangeAt(0) ).toString().length ) {
+        alert("Select the text first");
+        return;
+    }
+    
+    const url_input_box = create_url_input_box(sel);
+    url_input_box.setAttribute("data-sel-text", sel.toString().trim());
+    this.parentElement.append(url_input_box);
+}
+
+function create_url_input_box(sel) {
+    const url_input_box = create_elem("div.--text-editor-url-input-box");
+    
+    url_input_box.innerHTML = 
+        `<input type="url" placeholder="Enter the url">
+        <button>Submit</button>
+        <button>Cancel</button>`;
+
+    url_input_box.addEventListener("click", function(event) {
+        if(event.target.tagName === "BUTTON") {
+            link_button_handle.call(event.target, sel, url_input_box);
+        }
+    });
+
+    return url_input_box;
+}
+
+function link_button_handle (sel,url_input_box) {
+    if(this.innerHTML === "Submit") {
+        const url = url_input_box.querySelector("input[type='url']").value;
+        const link = document.createElement("a");
+        link.href = url;
+        link.textContent = url_input_box.getAttribute("data-sel-text") || url_input_box.querySelector("input[type='text']").value;
+        sel.deleteContents();
+        sel.insertNode(link);
+    }
+
+    window.getSelection().removeAllRanges();
+    url_input_box.remove();
+}
+
 function check_similar(e1, e2) {
 
-    if ( e1.tagName === e2.tagName ) {
-            if( e1.getAttribute("class") && !e2.classList.contains( e.getAttribute("class") ) ) 
-                return false;
-            return true;
-        }
+    if (e1.tagName === e2.tagName) {
+        if (e1.getAttribute("class") && !e2.classList.contains(e.getAttribute("class")))
+            return false;
+        return true;
+    }
 }
 
 function html_cleanup(parent_elem, format_style) {
@@ -167,19 +227,19 @@ function html_cleanup(parent_elem, format_style) {
     const whitespace = /^\s*$/;
     let prev;
 
-    parent_elem.querySelectorAll(format_style).forEach( e => {
-        if( Array.from(parent_elem.children).includes(e) )
-            e.querySelectorAll(format_style).forEach( i => i.replaceWith(...i.childNodes) );
+    parent_elem.querySelectorAll(format_style).forEach(e => {
+        if (Array.from(parent_elem.children).includes(e))
+            e.querySelectorAll(format_style).forEach(i => i.replaceWith(...i.childNodes));
 
-        if( e.previousElementSibling === prev && ( !(e.previousSibling.nodeType == Node.TEXT_NODE) || (whitespace.test(e.previousSibling.textContent)) ) ) 
+        if (e.previousElementSibling === prev && (!(e.previousSibling.nodeType == Node.TEXT_NODE) || (whitespace.test(e.previousSibling.textContent))))
             prev.appendChild(...e.childNodes);
         else
             prev = e;
     });
 
-    parent_elem.querySelectorAll("*").forEach( e => { 
-        const all_format_tags = format_btn_list.map( (format) => format.tag, this );
-        if( all_format_tags.includes(e.tagName) && !e.textContent )
+    parent_elem.querySelectorAll("*").forEach(e => {
+        const all_format_tags = get_format_list().map((format) => format.tag, this);
+        if (all_format_tags.includes(e.tagName) && !e.textContent)
             e.remove();
     });
 }
@@ -190,10 +250,10 @@ function check_desc(sel, format_style) {
     <em><strong> Some text 1 </strong></em><span.underline><strong> Some text 2 </strong></span> 
     Both texts 1 and 2 are bold but contained in separate strong tags. It works by extracting the text contents of all the format_style elements and comparing with the entire selection's text content. To keep it more accurate, whitespaces are removed from both and then compared.
     */
-   
+
     const elem = document.createElement("div");
-    elem.appendChild( sel.cloneContents() );
-    
+    elem.appendChild(sel.cloneContents());
+
     let formatted_text = "";
     elem.querySelectorAll(format_style).forEach(e => formatted_text += e.textContent);
     formatted_text = formatted_text.replaceAll(/\s*/g, "");
